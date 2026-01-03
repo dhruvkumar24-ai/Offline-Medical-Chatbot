@@ -1,0 +1,6 @@
+langchain==0.1.17
+langchain-community==0.0.37
+faiss-cpu==1.8.0
+pypdf==4.0.0
+ollama==0.1.4
+streamlit==1.32.0
