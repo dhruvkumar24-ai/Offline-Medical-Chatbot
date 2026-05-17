@@ -1,141 +1,184 @@
-# 🩺 Medical Chatbot - RAG System
+# 🩺 Offline Medical RAG Chatbot
+### LangChain · TinyLlama · FAISS · Ollama · Streamlit · Self-Project
 
-A local, offline medical chatbot that answers questions based on the **Gale Encyclopedia of Medicine, 2nd Edition** using Retrieval-Augmented Generation (RAG).
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-RAG_Pipeline-1C3C3C?style=flat-square)
+![FAISS](https://img.shields.io/badge/FAISS-Vector_DB-orange?style=flat-square)
+![Streamlit](https://img.shields.io/badge/Streamlit-Web_UI-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-TinyLlama-black?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Offline_%7C_No_API_Key_Needed-brightgreen?style=flat-square)
 
-## ✨ Features
+---
 
-- **100% Offline**: No external API calls, runs entirely locally
-- **Source Citations**: Every answer includes page references from the medical encyclopedia
-- **Professional Interface**: Clean Streamlit web UI with chat functionality
-- **Medical Disclaimer**: Built-in safety warnings for users
-- **Grounded Responses**: Answers only from the provided medical content
+## 🧩 Problem Statement
+
+Medical information is scattered across large encyclopedias — hard to search, harder to query conversationally. This project builds a **fully offline RAG-based medical chatbot** that answers natural language questions from an 800+ page medical PDF with source citations, zero external API calls, and a clean Streamlit interface.
+
+> *"Ask a medical question → retrieve relevant chunks → generate grounded, cited answers — all locally on your machine."*
+
+---
+
+## ✨ Key Features
+
+| Feature | Detail |
+|---|---|
+| **100% Offline** | No OpenAI/API key needed — runs entirely on local Ollama models |
+| **Source Citations** | Every answer includes page references from the encyclopedia |
+| **Grounded Responses** | Answers strictly from retrieved context — no hallucination |
+| **Medical Disclaimer** | Built-in safety warnings for responsible use |
+| **Clean Chat UI** | Streamlit-based interface with chat history |
+| **Optimized Chunking** | 500-char chunks, 100-char overlap — 7,486 chunks from 800+ page PDF |
+
+---
 
 ## 🛠️ Tech Stack
 
-- **LLM**: TinyLlama (via Ollama)
-- **Embeddings**: all-minilm (via Ollama)
-- **Vector Database**: FAISS (local)
-- **Framework**: LangChain
-- **UI**: Streamlit
-- **PDF Processing**: PyPDFLoader
+| Component | Tool |
+|---|---|
+| **LLM** | TinyLlama (via Ollama — local) |
+| **Embeddings** | all-MiniLM (via Ollama — local) |
+| **Vector Database** | FAISS (local index) |
+| **RAG Framework** | LangChain |
+| **PDF Processing** | PyPDFLoader + RecursiveCharacterTextSplitter |
+| **Web Interface** | Streamlit |
 
-## 📋 Prerequisites
+---
 
-1. **Python 3.8+**
-2. **Ollama**: Download from [ollama.ai](https://ollama.ai)
+## ⚙️ System Architecture
+
+```
+Medical PDF (800+ pages)
+        │
+        ▼
+PyPDFLoader → RecursiveCharacterTextSplitter
+  (chunk_size=500, overlap=100) → 7,486 chunks
+        │
+        ▼
+all-MiniLM Embeddings (Ollama)
+        │
+        ▼
+FAISS Vector Index (local disk)
+        │
+        ▼
+User Query → Similarity Search (top-k=3)
+        │
+        ▼
+TinyLlama (Ollama) + Custom RAG Prompt
+        │
+        ▼
+Grounded Answer + Source Citations
+        │
+        ▼
+Streamlit Chat Interface
+```
+
+---
+
+## 📁 Repository Structure
+
+```
+📦 Offline-Medical-RAG-Chatbot/
+├── 📂 data/
+│   └── Medical_book.pdf              # Source: Gale Encyclopedia of Medicine, 2nd Ed.
+├── 📂 vectorstore/
+│   └── faiss_medical_db/             # FAISS index (auto-generated)
+├── load_pdf.py                       # PDF loading & chunking
+├── vectorstore.py                    # Standard vector store creation
+├── vectorstore_optimized.py          # Parallel batch embedding creation
+├── vectorstore_fast.py               # Fast vector store with fallback strategies
+├── rag_chain.py                      # RAG pipeline (retriever + LLM + prompt)
+├── app.py                            # Streamlit chat interface
+├── setup_check.py                    # Environment & dependency checker
+├── setup.bat                         # Windows one-click setup
+├── requirements.txt                  # Python dependencies
+└── README.md
+```
+
+---
 
 ## 🚀 Quick Start
 
-### Step 1: Install Ollama and Models
+### Step 1 — Install Ollama & Pull Models
 ```bash
-# Download and install Ollama first, then:
+# Install Ollama from https://ollama.ai, then:
 ollama serve
 ollama pull tinyllama
 ollama pull all-minilm
 ```
 
-### Step 2: Install Python Dependencies
+### Step 2 — Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 3: Build Vector Database
+### Step 3 — Verify Setup
+```bash
+python setup_check.py
+```
+
+### Step 4 — Build Vector Database
 ```bash
 python vectorstore_optimized.py
 ```
-This will:
-- Load `data/Medical_book.pdf`
-- Split into 500-character chunks with 100-character overlap
-- Generate embeddings using `all-minilm`
-- Save FAISS index to `vectorstore/faiss_medical_db/`
+This processes `data/Medical_book.pdf` → generates embeddings → saves FAISS index.
 
-### Step 4: Launch the Web App
+### Step 5 — Launch App
 ```bash
 streamlit run app.py
 ```
+App runs at `http://localhost:8501`
 
-The app will be available at `http://localhost:8501`
+---
 
-## 📁 Project Structure
+## 💡 Sample Questions
 
 ```
-medical-chatbot/
-├── data/
-│   └── Medical_book.pdf          # Source medical encyclopedia
-├── vectorstore/
-│   └── faiss_medical_db/         # FAISS vector database (auto-generated)
-├── load_pdf.py                   # PDF loading and chunking
-├── vectorstore.py                # Vector database creation
-├── rag_chain.py                  # RAG pipeline implementation
-├── app.py                        # Streamlit web interface
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
+"What is diabetes?"
+"What are the symptoms of hypertension?"
+"How is pneumonia treated?"
+"What causes heart disease?"
+"Tell me about migraine headaches"
 ```
 
-## 💡 Usage Examples
+---
 
-Try these sample questions:
+## 📊 Performance
 
-- "What is diabetes?"
-- "What are the symptoms of hypertension?"
-- "How is pneumonia treated?"
-- "What causes heart disease?"
-- "Tell me about migraine headaches"
+| Metric | Value |
+|---|---|
+| PDF Size | 800+ pages |
+| Total Chunks | 7,486 |
+| Chunk Size | 500 characters |
+| Chunk Overlap | 100 characters |
+| Query Response Time | 2–5 seconds |
+| Memory Usage | ~1–2 GB RAM |
+| TinyLlama Model Size | ~637 MB |
+| all-MiniLM Model Size | ~23 MB |
 
-## 🔧 Troubleshooting
+---
 
-### Ollama Connection Issues
-```bash
-# Make sure Ollama is running
-ollama serve
+## 🔒 Privacy
 
-# Check if models are available
-ollama list
-```
-
-### Vector Store Issues
-```bash
-# Rebuild the vector database
-python vectorstore.py
-```
-
-### Missing Dependencies
-```bash
-# Reinstall requirements
-pip install -r requirements.txt --upgrade
-```
-
-## ⚠️ Important Disclaimers
-
-**This is for educational purposes only:**
-- Not a substitute for professional medical advice
-- Always consult qualified healthcare providers
-- In emergencies, contact emergency services immediately
-- Information based on encyclopedia content, not current medical practice
-
-## 🏗️ System Architecture
-
-1. **PDF Processing**: `load_pdf.py` splits the medical PDF into chunks
-2. **Vector Storage**: `vectorstore.py` creates embeddings and FAISS index
-3. **RAG Pipeline**: `rag_chain.py` handles retrieval and generation
-4. **Web Interface**: `app.py` provides the chat UI
-
-## 📊 Performance Notes
-
-- **Vector DB Size**: ~50-100MB (depends on PDF size)
-- **Query Time**: 2-5 seconds per question
-- **Memory Usage**: ~1-2GB RAM
-- **Models Size**: 
-  - TinyLlama: ~637MB
-  - all-minilm: ~23MB
-
-## 🔒 Privacy & Security
-
-- All processing happens locally
-- No data sent to external servers
-- Vector embeddings stored on local disk
+- All processing happens **locally** — no data sent to external servers
+- No API keys required
 - Chat history not persisted (resets on page refresh)
 
-## 🛡️ License & Usage
+---
 
-This project is for educational and research purposes. The medical content belongs to Gale Encyclopedia of Medicine. Please respect copyright and use responsibly.
+## ⚠️ Medical Disclaimer
+
+This chatbot is for **educational purposes only**. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical concerns.
+
+---
+
+## 🧠 Concepts Covered
+
+`Retrieval-Augmented Generation (RAG)` · `Vector Embeddings` · `FAISS Indexing` · `LLM Inference` · `Prompt Engineering` · `PDF Processing` · `LangChain Pipelines` · `Streamlit UI`
+
+---
+
+## 👤 Author
+
+**Dhruv Kumar Sahu**
+M.Tech, Industrial & Management Engineering — IIT Kanpur
+GATE 2024 AIR 33 | [LinkedIn](https://www.linkedin.com/in/dhruv-kumar-sahu-157ab9193/) · [GitHub](https://github.com/dhruvkumar24-ai)
